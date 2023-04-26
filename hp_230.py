@@ -33,7 +33,8 @@ def printer_230_details():
         offline_data = {
           "ip": val["ip"],
           "percentage": {},
-          "status": "offline"
+          "status": "offline",
+          "device_status": "Offline"
         }
         try:
             driver.get(val["url"])
@@ -41,15 +42,18 @@ def printer_230_details():
             content = driver.page_source
             soup = BeautifulSoup(content, features="html.parser")
             mydiv = soup.find_all("td", {"class": "alignRight valignTop"})
+            mydiv2 = soup.find_all("td", {"class": "itemLargeFont"})
             Black = (mydiv[0].get_text().replace("†", "").replace("%", "").strip())
             Drum = (mydiv[1].get_text().replace("†", "").replace("%", "").strip())
             percent = {"black": Black, "drum": Drum}
+            for td in mydiv2:
+                td_text = td.text
             floor_printer_details[key] = {
                "ip": val["ip"],
                "percentage": percent,
-               "status": "online"
+               "status": "online",
+               "device_status": td_text
             }
-            print(floor_printer_details)
 
         except Exception as e:
             print(f"Error occurred for {val['url']}: {str(e)}")
@@ -58,3 +62,4 @@ def printer_230_details():
             floor_printer_details[key] = offline_data
 
     return floor_printer_details
+# print(printer_230_details())

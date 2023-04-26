@@ -69,7 +69,8 @@ def printer_brother_details():
         offline_data = {
           "ip": val["ip"],
           "percentage": {},
-          "status": "offline"
+          "status": "offline",
+          "device_status": "Offline"
         }
 
         try:
@@ -78,17 +79,21 @@ def printer_brother_details():
             content = driver.page_source
             soup = BeautifulSoup(content, features="html.parser")
             mydiv = soup.find("img", {"class": "tonerremain"})
+            mydiv2 = soup.find_all("span", {"class": "moni moniOk"})
 
             height = int(mydiv['height'])
             quotient = height / 56
             perc = int(quotient * 100)
 
             percent = {"black": perc}
+            for span in mydiv2:
+                span_text = span.text
 
             floor_printer_details[key] = {
                 "ip": val["ip"],
                 "percentage": percent,
-                "status": "online"
+                "status": "online",
+                "device_status": span_text
             }
 
         except Exception as e:

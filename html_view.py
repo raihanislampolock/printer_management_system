@@ -1,8 +1,11 @@
+import datetime
 from email.mime import image
 import background as background
 import psycopg2
 import json
 from http.server import HTTPServer, BaseHTTPRequestHandler
+
+import pytz
 
 
 class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
@@ -18,18 +21,20 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
         # Fetch data from database
         cursor.execute(
-            "SELECT *, substring(location from '[0-9]+')::integer as \"location2\" FROM printer_details ORDER BY id DESC, \"location2\" ASC LIMIT 16")
+            "SELECT *, substring(location from '[0-9]+')::integer as \"location2\" FROM printer_details ORDER BY id DESC, \"location2\" ASC LIMIT 17")
 
         data = cursor.fetchall()
         # print(data)
         sorted_data = sorted(data, key=lambda x: x[-1])
         # Create HTML table
-        table = "<table class='table'><thead><tr><th>ID</th><th>Location</th><th>IP</th><th>Details (%)</th></tr></thead><tbody>"
+        table = "<table class='table'><thead><tr><th>ID</th><th>Location</th><th>IP</th><th>Details (%)</th><th>Date and Time</th><th>Status</th><th>Device Status</th></tr></thead><tbody>"
         for row in sorted_data:
             table += "<tr>"
             table += f"<td>{row[0]}</td>"
-            table += f"<td>{row[1]}</td>"
+            table += f"<td style='font-weight:900;'>{row[1]}</td>"
             table += f"<td><a href='http://{row[2]}' target='_blank'>{row[2]}</a></td>"
+            # table += f"<td>{row[3]}</td>"
+
 
 
             # Extracting data from the string
@@ -39,19 +44,40 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             details = details.replace(",", "<br>")
             # table += f"<td>{details}</td>"
             table += f"<td>"
-            ## table += f"<td><span style='color:red;'>{details}</span></td>"
-
             data = json.loads(row[3])
             for i in data:
-
-                if int(data[i]) <= 30:
-                    table += f"<span style='color:red; font-weight:900;'>{i}: {data[i]}</span><br>"
-
-                elif int(data[i]) <= 50:
-                    table += f"<span style='color:#17a2b8; font-weight:900;'>{i}: {data[i]}</span><br>"
+                if isinstance(data[i], int) or isinstance(data[i], float):
+                    value = str(data[i])
                 else:
-                    table += f"<span style='color:black; font-weight:900;'>{i}: {data[i]}</span><br>"
+                    value = data[i].replace('%', '')
+
+                if int(value) <= 30:
+                    table += f"<span style='color:red; font-weight:900;'>{i}: {value}</span><br>"
+                elif int(value) <= 50:
+                    table += f"<span style='color:#17a2b8; font-weight:900;'>{i}: {value}</span><br>"
+                else:
+                    table += f"<span style='color:black; font-weight:900;'>{i}: {value}</span><br>"
+
             table += f"</td>"
+
+            local_time = row[5].astimezone(datetime.timezone(datetime.timedelta(hours=6, minutes=0)))
+            local_time_str = local_time.strftime('%Y-%m-%d %H:%M:%S')
+            # Set the timezone of the datetime object to UTC
+            utc_time = pytz.utc.localize(row[5])
+
+            # Convert the UTC datetime object to GMT+6
+            local_time = utc_time.astimezone(pytz.timezone('Asia/Dhaka'))
+
+            # Format the local datetime object as a string
+            local_time_str = local_time.strftime('%Y-%b-%d <br> %H:%M:%S')
+
+            table += f"<td>{local_time_str}</td>"
+            if (row[8]=="online"):
+                table += f"<td><span style='color:#17a2b8; font-weight:700; text-transform:capitalize;'>{row[8]}</span></td>"
+            else:
+                table += f"<td><span style='color:red; font-weight:700; text-transform:capitalize;'>{row[8]}</span></td>"
+
+            table += f"<td style='font-weight:700; width: 200px;'>{row[9]}</td>"
 
             table += "</tr>"
         table += "</tbody></table>"
@@ -74,7 +100,7 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                         font-family: Arial, Helvetica, sans-serif;
                         font-size: 16px;
                         margin: 0;
-                        padding: 20px;
+                        padding: 8px;
 
                     }}
                     

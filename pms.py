@@ -3,6 +3,7 @@ import psycopg2
 import hp_230
 import hp_508_printer
 import Brother
+import canon_337
 import schedule
 import time
 
@@ -20,16 +21,15 @@ def insert_printer_details(printer_details):
     cursor = conn.cursor()
 
     for location, details in printer_details.items():
+        # print(details)
         ip = details['ip']
+        status = details['status']
+        device_status = details['device_status']
         details = json.dumps(details['percentage'])
-        # black = details
-        # cyan = details
-        # magenta = details
-        # yellow = details
 
         cursor.execute(
-            "INSERT INTO printer_details (location, ip, details) VALUES (%s, %s, %s)",
-            (location, ip, details)
+            "INSERT INTO printer_details (location, ip, details, device_status, status) VALUES (%s, %s, %s, %s, %s)",
+            (location, ip, details, device_status, status)
         )
 
     # Commit changes and close the database connection
@@ -41,7 +41,9 @@ def insert_printer_details(printer_details):
 hp_508 = hp_508_printer.printer_508_details()
 hp_230 = hp_230.printer_230_details()
 Brother = Brother.printer_brother_details()
+canon_337 = canon_337.get_cartridge_info()
 
 insert_printer_details(hp_508)
 insert_printer_details(hp_230)
 insert_printer_details(Brother)
+insert_printer_details(canon_337)
