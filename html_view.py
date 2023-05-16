@@ -50,13 +50,16 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                     value = str(data[i])
                 else:
                     value = data[i].replace('%', '')
-
-                if int(value) <= 30:
-                    table += f"<span style='color:red; font-weight:900;'>{i}: {value}</span><br>"
-                elif int(value) <= 50:
-                    table += f"<span style='color:#17a2b8; font-weight:900;'>{i}: {value}</span><br>"
+                if value:
+                    if int(value) <= 30:
+                        table += f"<span style='color:red; font-weight:900;'>{i}: {value}</span><br>"
+                    elif int(value) <= 50:
+                        table += f"<span style='color:#17a2b8; font-weight:900;'>{i}: {value}</span><br>"
+                    else:
+                        table += f"<span style='color:black; font-weight:900;'>{i}: {value}</span><br>"
                 else:
-                    table += f"<span style='color:black; font-weight:900;'>{i}: {value}</span><br>"
+                     # handle the case where value is an empty string
+                     table += f"<span style='color:black; font-weight:900;'>{i}: N/A</span><br>"
 
             table += f"</td>"
 
