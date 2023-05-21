@@ -51,7 +51,9 @@ class SimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 else:
                     value = data[i].replace('%', '')
                 if value:
-                    if int(value) <= 30:
+                    if value.startswith("<"):
+                        value = value[1:]  # Remove the leading "<" character
+                    if value.isdigit() and int(value) <= 30:
                         table += f"<span style='color:red; font-weight:900;'>{i}: {value}</span><br>"
                     elif int(value) <= 50:
                         table += f"<span style='color:#17a2b8; font-weight:900;'>{i}: {value}</span><br>"
